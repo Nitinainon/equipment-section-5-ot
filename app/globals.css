@@ -1959,6 +1959,30 @@ button {
     min-width: 680px;
   }
 
+  .week-calendar-panel .calendar-grid {
+    min-width: 0;
+  }
+
+  .week-calendar-panel .day-cell {
+    min-height: 132px;
+    padding: 10px 5px;
+  }
+
+  .week-calendar-panel .day-number {
+    height: 34px;
+    width: 34px;
+    font-size: 20px;
+  }
+
+  .week-calendar-panel .day-counts {
+    min-height: 20px;
+    font-size: 10px;
+  }
+
+  .week-calendar-panel .day-items {
+    gap: 4px;
+  }
+
   .filter-input {
     padding: 0 10px;
   }
@@ -2221,4 +2245,251 @@ button {
 
 .modal-backdrop {
   background: rgba(2, 6, 13, 0.72);
+}
+
+.sr-only {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.topbar {
+  display: block;
+  padding: 0;
+  border-radius: 28px;
+  background: #081523;
+}
+
+.topbar::before {
+  display: none;
+}
+
+.banner-home {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  line-height: 0;
+}
+
+.banner-art {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3.2 / 1;
+  object-fit: cover;
+}
+
+.topbar .top-icon {
+  position: absolute;
+  top: 50%;
+  right: clamp(14px, 3vw, 30px);
+  height: clamp(46px, 6vw, 68px);
+  width: clamp(46px, 6vw, 68px);
+  border-radius: 22px;
+  background: rgba(5, 14, 27, 0.74);
+  backdrop-filter: blur(14px);
+  transform: translateY(-50%);
+}
+
+.mobile-status-grid {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    padding: 12px 12px 88px;
+  }
+
+  .topbar {
+    margin-bottom: 12px;
+    border-radius: 18px;
+  }
+
+  .banner-art {
+    min-height: 104px;
+  }
+
+  .topbar .top-icon {
+    right: 13px;
+    height: 42px;
+    width: 42px;
+    border-radius: 15px;
+  }
+
+  .month-toolbar {
+    grid-template-areas:
+      "prev title next"
+      ". today .";
+    grid-template-columns: 52px minmax(0, 1fr) 52px;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: rgba(9, 22, 40, 0.86);
+    padding: 12px;
+  }
+
+  .month-toolbar > .square-action:first-child {
+    grid-area: prev;
+  }
+
+  .month-toolbar > .square-action:nth-of-type(2) {
+    grid-area: next;
+  }
+
+  .month-picker {
+    grid-area: title;
+    min-height: 54px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: clamp(21px, 6vw, 28px);
+    line-height: 1.14;
+  }
+
+  .month-picker span {
+    display: block;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .today-action {
+    grid-area: today;
+    justify-self: center;
+    min-height: 38px;
+    min-width: 112px;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.18);
+    color: #60a5fa;
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.62);
+  }
+
+  .search-row {
+    grid-template-columns: minmax(0, 1fr) 132px;
+  }
+
+  .mobile-status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 0 12px;
+  }
+
+  .status-card {
+    display: grid;
+    min-height: 94px;
+    align-content: space-between;
+    gap: 8px;
+    border: 1px solid rgba(37, 99, 235, 0.48);
+    border-radius: 17px;
+    background:
+      radial-gradient(circle at 18% 24%, rgba(37, 99, 235, 0.22), transparent 42%),
+      rgba(9, 22, 40, 0.9);
+    padding: 12px;
+  }
+
+  .status-card.cyan {
+    border-color: rgba(14, 165, 233, 0.46);
+  }
+
+  .status-card.amber {
+    border-color: rgba(245, 158, 11, 0.48);
+  }
+
+  .status-card span:not(.status-icon) {
+    color: #c7d6eb;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .status-card strong {
+    color: #f8fbff;
+    font-size: 26px;
+    line-height: 1;
+    font-weight: 900;
+  }
+
+  .status-icon {
+    display: grid;
+    height: 34px;
+    width: 34px;
+    place-items: center;
+    border-radius: 13px;
+    background: rgba(37, 99, 235, 0.2);
+    color: #60a5fa;
+  }
+
+  .status-card.cyan .status-icon {
+    background: rgba(14, 165, 233, 0.18);
+    color: #22d3ee;
+  }
+
+  .status-card.amber .status-icon {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+  }
+
+  .export-actions {
+    gap: 8px;
+  }
+
+  .view-toggle {
+    border-radius: 18px;
+  }
+
+  .view-toggle button {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .calendar-panel,
+  .day-sheet,
+  .section-card,
+  .summary-panel {
+    border-radius: 20px;
+  }
+
+  .calendar-export-title {
+    padding: 16px;
+  }
+
+  .calendar-export-title strong {
+    font-size: 22px;
+    line-height: 1.22;
+  }
+
+  .week-calendar-panel .day-cell {
+    min-height: 132px;
+  }
+
+  .detail-list {
+    border-color: var(--line);
+    background: rgba(8, 18, 33, 0.76);
+  }
+
+  .detail-row {
+    grid-template-columns: auto minmax(0, 1fr) 40px 40px;
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .row-icon {
+    height: 40px;
+    width: 40px;
+  }
+
+  .bottom-nav {
+    border-top-color: rgba(58, 85, 116, 0.86);
+  }
+
+  .bottom-nav button {
+    min-height: 72px;
+    font-size: 11px;
+  }
 }

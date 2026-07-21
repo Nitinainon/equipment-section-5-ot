@@ -50,6 +50,21 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
+const thaiShortMonths = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
+
 const weekdayLabels = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
 const weekdayFullLabels = [
   "วันอาทิตย์",
@@ -305,6 +320,16 @@ export function OtCalendarApp() {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  useEffect(() => {
+    if (!window.matchMedia("(max-width: 760px)").matches) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      setCalendarView("week");
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   const filteredEntries = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
     return entries.filter((entry) => {
@@ -383,6 +408,17 @@ export function OtCalendarApp() {
   const selectedDateHolidays = selectedDate
     ? holidaysForDate(filteredHolidays, selectedDate)
     : [];
+  const selectedOtEntries = selectedDateEntries.filter((entry) => entry.entry_type === "ot");
+  const selectedAbsentEntries = selectedDateEntries.filter((entry) => entry.entry_type === "absent");
+  const selectedOtMemberCount = new Set(selectedOtEntries.map((entry) => entry.member_id)).size;
+  const selectedBusyMemberIds = new Set([
+    ...selectedDateEntries.map((entry) => entry.member_id),
+    ...selectedDateHolidays.map((holiday) => holiday.member_id),
+  ]);
+  const selectedAvailableCount = Math.max(
+    0,
+    members.filter((member) => member.is_active).length - selectedBusyMemberIds.size,
+  );
   const calendarDays = useMemo(
     () =>
       calendarView === "week"
@@ -392,15 +428,11 @@ export function OtCalendarApp() {
   );
   const calendarTitle =
     calendarView === "week"
-      ? `สัปดาห์ ${formatDateDDMMYYYY(calendarDays[0].iso)} - ${formatDateDDMMYYYY(
-          calendarDays[6].iso,
-        )}`
+      ? formatWeekRangeShort(calendarDays[0].iso, calendarDays[6].iso)
       : monthLabel(selectedMonth);
   const exportCalendarTitle =
     calendarView === "week"
-      ? `ปฏิทิน OT รายสัปดาห์ ${formatDateDDMMYYYY(calendarDays[0].iso)} - ${formatDateDDMMYYYY(
-          calendarDays[6].iso,
-        )}`
+      ? `ปฏิทิน OT รายสัปดาห์ ${formatWeekRangeShort(calendarDays[0].iso, calendarDays[6].iso)}`
       : `ปฏิทิน OT ประจำเดือน${monthLabel(selectedMonth)}`;
 
   function goToPreviousMonth() {
@@ -767,26 +799,14 @@ export function OtCalendarApp() {
     <main className="app-shell">
       <header className="topbar">
         <button className="banner-home" type="button" onClick={goToHome} aria-label="กลับไปหน้าหลัก">
-          <span className="brand-mark">
-            <CalendarCheck size={28} aria-hidden />
-          </span>
-          <span className="brand-copy">
-            <span className="brand-title">Equipment Section 5 - OT</span>
-            <span>ระบบวางแผนและลงทะเบียนการทำงานล่วงเวลา</span>
-          </span>
-          <span className="hero-graphic" aria-hidden="true">
-            <span className="graphic-card graphic-calendar">
-              <span>OT</span>
-              <strong>17:00</strong>
-              <i />
-            </span>
-            <span className="graphic-card graphic-chart">
-              <span />
-              <span />
-              <span />
-            </span>
-            <span className="graphic-badge">+3 ชม.</span>
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt=""
+            aria-hidden="true"
+            className="banner-art"
+            src="/equipment-ot-banner.jpg"
+          />
+          <span className="sr-only">Equipment Section 5 - OT ระบบวางแผนและลงทะเบียน OT</span>
         </button>
         <button
           className="top-icon"
@@ -844,6 +864,30 @@ export function OtCalendarApp() {
             ))}
           </select>
         </label>
+      </section>
+
+      <section className="mobile-status-grid" aria-label="สรุปวันที่เลือก">
+        <div className="status-card">
+          <span className="status-icon">
+            <Users size={19} aria-hidden />
+          </span>
+          <span>OT วันนี้</span>
+          <strong>{selectedOtMemberCount} คน</strong>
+        </div>
+        <div className="status-card cyan">
+          <span className="status-icon">
+            <Users size={19} aria-hidden />
+          </span>
+          <span>ว่าง</span>
+          <strong>{selectedAvailableCount} คน</strong>
+        </div>
+        <div className="status-card amber">
+          <span className="status-icon">
+            <CalendarCheck size={19} aria-hidden />
+          </span>
+          <span>วันหยุด</span>
+          <strong>{selectedDateHolidays.length + selectedAbsentEntries.length} คน</strong>
+        </div>
       </section>
 
       <section className="export-actions" aria-label="บันทึกรูปข้อมูล OT">
@@ -2555,6 +2599,19 @@ function monthLabel(month: string) {
 function formatDateThaiLong(dateIso: string) {
   const [year, month, day] = dateIso.split("-").map(Number);
   return `${day} ${thaiMonths[month - 1]} ${year}`;
+}
+
+function formatWeekRangeShort(startIso: string, endIso: string) {
+  const [startYear, startMonth, startDay] = startIso.split("-").map(Number);
+  const [endYear, endMonth, endDay] = endIso.split("-").map(Number);
+
+  if (startYear === endYear && startMonth === endMonth) {
+    return `${startDay}-${endDay} ${thaiShortMonths[startMonth - 1]} ${startYear}`;
+  }
+
+  return `${startDay}/${String(startMonth).padStart(2, "0")}/${startYear} - ${endDay}/${String(
+    endMonth,
+  ).padStart(2, "0")}/${endYear}`;
 }
 
 function formatDateDDMMYYYY(dateIso: string) {
