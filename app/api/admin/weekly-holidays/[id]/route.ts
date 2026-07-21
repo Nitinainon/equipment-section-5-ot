@@ -4,8 +4,6 @@ import { deleteWeeklyHoliday } from "@/lib/admin-service";
 import { assertMutationRateLimit } from "@/lib/rate-limit";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
-export const runtime = "edge";
-
 type RouteContext = {
   params: Promise<{ id: string }>;
 };

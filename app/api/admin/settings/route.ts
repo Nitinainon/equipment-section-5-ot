@@ -5,8 +5,6 @@ import { fetchDisplaySettings, updateDisplaySettings } from "@/lib/settings-serv
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { DisplaySettings } from "@/lib/types";
 
-export const runtime = "edge";
-
 export async function GET(request: NextRequest) {
   try {
     assertAdminCode(request);

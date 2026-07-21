@@ -4,8 +4,6 @@ import { assertMutationRateLimit } from "@/lib/rate-limit";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { OvertimePayload } from "@/lib/types";
 
-export const runtime = "edge";
-
 type RouteContext = {
   params: Promise<{ id: string }>;
 };

@@ -5,8 +5,6 @@ import { assertMutationRateLimit } from "@/lib/rate-limit";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { MemberPayload } from "@/lib/types";
 
-export const runtime = "edge";
-
 export async function GET(request: NextRequest) {
   try {
     assertAdminCode(request);
