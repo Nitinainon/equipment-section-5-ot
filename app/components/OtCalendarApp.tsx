@@ -409,7 +409,7 @@ export function OtCalendarApp() {
   const selectedDateHolidays = selectedDate
     ? holidaysForDate(filteredHolidays, selectedDate)
     : [];
-  const selectedOtEntries = selectedDateEntries.filter((entry) => entry.entry_type === "ot");
+  const selectedOtEntries = selectedDateEntries.filter((entry) => entry.entry_type === "ot" && !isHolidayCreditEntry(entry));
   const selectedAbsentEntries = selectedDateEntries.filter((entry) => entry.entry_type === "absent");
   const selectedOtMemberCount = new Set(selectedOtEntries.map((entry) => entry.member_id)).size;
   const selectedBusyMemberIds = new Set([
@@ -2628,9 +2628,18 @@ function holidaysForDate(holidays: WeeklyHoliday[], dateIso: string) {
 }
 
 function compareOvertimeEntriesByMemberOrder(a: OvertimeEntry, b: OvertimeEntry) {
+  const categoryDiff = getCalendarEntryCategory(a) - getCalendarEntryCategory(b);
+  if (categoryDiff !== 0) return categoryDiff;
+
   const memberOrder = compareMembersBySystemOrder(a.member, b.member);
   if (memberOrder !== 0) return memberOrder;
   return (a.start_time ?? "").localeCompare(b.start_time ?? "");
+}
+
+function getCalendarEntryCategory(entry: OvertimeEntry) {
+  if (entry.entry_type === "ot" && !isHolidayCreditEntry(entry)) return 0;
+  if (isHolidayCreditEntry(entry)) return 1;
+  return 2;
 }
 
 function compareWeeklyHolidaysByMemberOrder(a: WeeklyHoliday, b: WeeklyHoliday) {
