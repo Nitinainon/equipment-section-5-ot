@@ -17,6 +17,7 @@ const absenceTypes = new Set<OvertimeAbsenceType>([
   "personal_leave",
   "sick_leave",
   "vacation_leave",
+  "compensatory_leave",
 ]);
 
 const memberSelect =

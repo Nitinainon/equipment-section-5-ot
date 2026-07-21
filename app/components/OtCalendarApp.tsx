@@ -130,6 +130,7 @@ type LeaveInfoRow = {
   holidayOtMinutes: number;
   addedHolidayDays: number;
   sixthDayOffUsed: number;
+  compensatoryLeaveUsed: number;
   sickLeaveUsed: number;
   personalLeaveUsed: number;
   vacationLeaveUsed: number;
@@ -164,6 +165,7 @@ const absenceOptions: Array<{ type: OvertimeAbsenceType; label: string }> = [
   { type: "personal_leave", label: "ลากิจ" },
   { type: "sick_leave", label: "ลาป่วย" },
   { type: "vacation_leave", label: "ลาพักร้อน" },
+  { type: "compensatory_leave", label: "ลางานใช้วันหยุดชดเชย" },
 ];
 
 const emptyMemberForm: MemberPayload = {
@@ -2168,7 +2170,7 @@ function LeaveInfoPanel({
                 <td data-label="วันหยุดเพิ่ม">
                   <strong>{formatLeaveDays(row.addedHolidayDays)}</strong>
                   {row.addedHolidayDays ? <small>จากการเลือกเก็บวันหยุด</small> : null}
-                  {row.sixthDayOffUsed ? <small>ใช้แล้ว {formatLeaveDays(row.sixthDayOffUsed)}</small> : null}
+                  {row.compensatoryLeaveUsed ? <small>ใช้ชดเชยแล้ว {formatLeaveDays(row.compensatoryLeaveUsed)}</small> : null}
                 </td>
                 <td data-label="ลาป่วยที่เหลือ">
                   {formatLeaveDays(row.sickLeaveRemaining)}
@@ -2887,12 +2889,14 @@ function buildLeaveInfoRows(members: Member[], entries: OvertimeEntry[]): LeaveI
   return members.map((member) => {
     const holidayCreditDays = holidayCreditsByMember.get(member.id) ?? 0;
     const absenceDays = absenceDaysByMember.get(member.id) ?? emptyAbsenceDayCounts();
+    const compensatoryLeaveUsed = absenceDays.compensatory_leave;
 
     return {
       member,
       holidayOtMinutes: 0,
-      addedHolidayDays: holidayCreditDays,
+      addedHolidayDays: Math.max(0, holidayCreditDays - compensatoryLeaveUsed),
       sixthDayOffUsed: absenceDays.sixth_day_off,
+      compensatoryLeaveUsed,
       sickLeaveUsed: absenceDays.sick_leave,
       personalLeaveUsed: absenceDays.personal_leave,
       vacationLeaveUsed: absenceDays.vacation_leave,
@@ -2909,6 +2913,7 @@ function emptyAbsenceDayCounts(): Record<OvertimeAbsenceType, number> {
     personal_leave: 0,
     sick_leave: 0,
     vacation_leave: 0,
+    compensatory_leave: 0,
   };
 }
 

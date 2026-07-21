@@ -25,7 +25,12 @@ export type WeeklyHoliday = {
 
 export type OvertimeEntryType = "ot" | "absent";
 export type OvertimeDayType = "regular" | "holiday";
-export type OvertimeAbsenceType = "sixth_day_off" | "personal_leave" | "sick_leave" | "vacation_leave";
+export type OvertimeAbsenceType =
+  | "sixth_day_off"
+  | "personal_leave"
+  | "sick_leave"
+  | "vacation_leave"
+  | "compensatory_leave";
 
 export type OvertimeEntry = {
   id: string;

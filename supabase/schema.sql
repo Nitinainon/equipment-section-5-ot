@@ -88,7 +88,7 @@ create table if not exists public.overtime_entries (
     (entry_type = 'ot' and absence_type is null)
     or (
       entry_type = 'absent'
-      and absence_type in ('sixth_day_off', 'personal_leave', 'sick_leave', 'vacation_leave')
+      and absence_type in ('sixth_day_off', 'personal_leave', 'sick_leave', 'vacation_leave', 'compensatory_leave')
     )
   ),
   constraint overtime_day_type_valid check (day_type in ('regular', 'holiday')),
@@ -172,7 +172,7 @@ alter table public.overtime_entries
     (entry_type = 'ot' and absence_type is null)
     or (
       entry_type = 'absent'
-      and absence_type in ('sixth_day_off', 'personal_leave', 'sick_leave', 'vacation_leave')
+      and absence_type in ('sixth_day_off', 'personal_leave', 'sick_leave', 'vacation_leave', 'compensatory_leave')
     )
   );
 
