@@ -2301,6 +2301,104 @@ button {
   display: none;
 }
 
+.section-title h2,
+.summary-panel .section-title h2,
+.summary-panel .metric span,
+.summary-panel .metric strong,
+.summary-panel .member-total strong {
+  color: #f8fbff;
+}
+
+.summary-panel {
+  background:
+    linear-gradient(180deg, rgba(15, 36, 64, 0.96), rgba(8, 18, 33, 0.96)),
+    radial-gradient(circle at 12% 0%, rgba(37, 99, 235, 0.18), transparent 34%);
+}
+
+.summary-panel .metric {
+  border-color: rgba(96, 165, 250, 0.24);
+  background:
+    linear-gradient(145deg, rgba(22, 42, 72, 0.94), rgba(12, 25, 44, 0.94));
+}
+
+.summary-panel .metric span {
+  color: #cbdaf0;
+}
+
+.summary-panel .metric strong {
+  position: relative;
+  z-index: 1;
+}
+
+.member-total {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  border-color: rgba(96, 165, 250, 0.24);
+  background:
+    linear-gradient(145deg, rgba(14, 30, 52, 0.96), rgba(9, 20, 36, 0.96));
+  padding: 12px;
+}
+
+.member-total-dot {
+  align-self: start;
+  margin-top: 5px;
+}
+
+.member-total-person {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.member-total-person strong {
+  overflow: visible;
+  color: #f8fbff;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.member-total-person small {
+  color: #aabdda;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.member-total-rates {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.member-total-rates span {
+  display: grid;
+  height: auto;
+  width: auto;
+  gap: 2px;
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  border-radius: 11px;
+  background: rgba(5, 15, 28, 0.62);
+  padding: 7px 8px;
+}
+
+.member-total-rates span.total {
+  border-color: rgba(37, 99, 235, 0.46);
+  background: rgba(37, 99, 235, 0.18);
+}
+
+.member-total-rates b {
+  color: #8fbaff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.member-total-rates em {
+  color: #f8fbff;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 900;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     padding: 12px 12px 88px;
@@ -2490,6 +2588,34 @@ button {
 
   .bottom-nav button {
     min-height: 72px;
+    font-size: 11px;
+  }
+
+  .summary-panel .section-title h2 {
+    font-size: 21px;
+    line-height: 1.22;
+  }
+
+  .summary-panel .metric span {
+    color: #d7e4f7;
+    font-size: 12px;
+  }
+
+  .summary-panel .metric strong {
+    font-size: 24px;
+  }
+
+  .member-total {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .member-total-rates {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .member-total-person small {
     font-size: 11px;
   }
 }

@@ -43,3 +43,4 @@ tsconfig.tsbuildinfo
 /outputs/
 /work/
 dev-server.*.log
+.codex-dev-server*.log

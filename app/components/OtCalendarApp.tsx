@@ -187,6 +187,7 @@ export function OtCalendarApp() {
   const todayIso = useMemo(() => getBangkokTodayIso(), []);
   const calendarExportRef = useRef<HTMLElement>(null);
   const dayExportRef = useRef<HTMLElement>(null);
+  const registerSectionRef = useRef<HTMLElement>(null);
   const [selectedMonth, setSelectedMonth] = useState(todayIso.slice(0, 7));
   const [members, setMembers] = useState<Member[]>([]);
   const [adminMembers, setAdminMembers] = useState<Member[]>([]);
@@ -795,6 +796,33 @@ export function OtCalendarApp() {
     }
   }
 
+  function goToRegisterTab() {
+    const targetDate = selectedDate ?? todayIso;
+
+    setFormMode(null);
+    setForm((current) => ({
+      ...current,
+      otDate: targetDate,
+    }));
+    setActiveTab("register");
+
+    window.requestAnimationFrame(() => {
+      registerSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
+
+  function handleTabChange(tab: ActiveTab) {
+    if (tab === "register") {
+      goToRegisterTab();
+      return;
+    }
+
+    setActiveTab(tab);
+  }
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -1025,7 +1053,7 @@ export function OtCalendarApp() {
       ) : null}
 
       {activeTab === "register" ? (
-        <section className="section-card inline-form-card">
+        <section className="section-card inline-form-card" ref={registerSectionRef}>
           <SectionTitle icon={<Plus size={20} />} title="ลงทะเบียนข้อมูล" />
           <OtForm
             form={form}
@@ -1132,7 +1160,7 @@ export function OtCalendarApp() {
         />
       </div>
 
-      <BottomNav activeTab={activeTab} onChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onChange={handleTabChange} />
 
       {formMode && activeTab !== "register" ? (
         <Modal onClose={() => setFormMode(null)}>
@@ -2037,11 +2065,31 @@ function SummaryPanel({
         {summary.by_member.length ? (
           summary.by_member.map((member) => (
             <div className="member-total" key={member.member_id}>
-              <span style={{ backgroundColor: member.color }} />
-              <strong>{memberHoursLabel(member, showEmployeeCode)}</strong>
-              <em>
-                {formatMemberRateTotals(member)}
-              </em>
+              <span className="member-total-dot" style={{ backgroundColor: member.color }} />
+              <div className="member-total-person">
+                <strong>{member.name}</strong>
+                {memberHoursSecondaryLabel(member, showEmployeeCode) ? (
+                  <small>{memberHoursSecondaryLabel(member, showEmployeeCode)}</small>
+                ) : null}
+              </div>
+              <div className="member-total-rates">
+                <span>
+                  <b>OT1</b>
+                  <em>{formatHours(member.ot_1x_minutes)}</em>
+                </span>
+                <span>
+                  <b>OT1.5</b>
+                  <em>{formatHours(member.ot_1_5x_minutes)}</em>
+                </span>
+                <span>
+                  <b>OT3</b>
+                  <em>{formatHours(member.ot_3x_minutes)}</em>
+                </span>
+                <span className="total">
+                  <b>รวม</b>
+                  <em>{formatHours(member.total_minutes)}</em>
+                </span>
+              </div>
             </div>
           ))
         ) : (
@@ -2840,25 +2888,13 @@ function memberFullLabel(member: Member, showEmployeeCode = false) {
   return secondary ? `${member.name} (${secondary})` : member.name;
 }
 
-function memberHoursLabel(member: MemberHours, showEmployeeCode = false) {
+function memberHoursSecondaryLabel(member: MemberHours, showEmployeeCode = false) {
   const employeeCode = showEmployeeCode ? formatEmployeeCode(member.employee_code) : "";
   const names = [member.nickname, member.chinese_name]
     .map((value) => value?.trim())
     .filter(Boolean)
     .join(" / ");
-  const secondary = [employeeCode, names].filter(Boolean).join(" - ");
-  return secondary ? `${member.name} (${secondary})` : member.name;
-}
-
-function formatMemberRateTotals(member: MemberHours) {
-  const parts = [
-    `OT1 เท่า ${formatHours(member.ot_1x_minutes)}`,
-    `OT1.5 เท่า ${formatHours(member.ot_1_5x_minutes)}`,
-    `OT3 เท่า ${formatHours(member.ot_3x_minutes)}`,
-    `OT ทั้งหมด ${formatHours(member.total_minutes)}`,
-  ].filter(Boolean);
-
-  return parts.join(" / ");
+  return [employeeCode, names].filter(Boolean).join(" - ");
 }
 
 function formatEmployeeCode(value?: string | null) {
