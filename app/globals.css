@@ -570,7 +570,8 @@ button {
 
 .ot-pill {
   border: 1px solid rgba(37, 99, 235, 0.14);
-  color: #1e3a8a !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.32);
 }
 
 .holiday-pill {

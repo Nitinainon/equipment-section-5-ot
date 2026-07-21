@@ -1029,7 +1029,7 @@ export function OtCalendarApp() {
                               ? undefined
                               : {
                                   backgroundColor: addAlpha(entry.member.color, 0.26),
-                                  color: "#eaf3ff",
+                                  color: "#ffffff",
                                 }
                           }
                         >
