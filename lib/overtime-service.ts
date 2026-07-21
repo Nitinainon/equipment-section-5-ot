@@ -64,6 +64,23 @@ export function validateOvertimePayload(
     };
   }
 
+  if (dayType === "holiday" && !startTime && !endTime) {
+    return {
+      memberId,
+      otDate,
+      entryType,
+      absenceType: null,
+      startTime: null,
+      endTime: null,
+      dayType: "holiday" as const,
+      totalMinutes: 0,
+      ot1xMinutes: 0,
+      ot15xMinutes: 0,
+      ot3xMinutes: 0,
+      weightedMinutes: 0,
+    };
+  }
+
   if (!startTime) throw new Error("กรุณากรอกเวลาเริ่มต้น");
   if (!endTime) throw new Error("กรุณากรอกเวลาสิ้นสุด");
   if (!/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) {
@@ -440,7 +457,7 @@ function weekdayFromIsoDate(dateIso: string) {
 }
 
 function buildMonthSummary(entries: OvertimeEntry[], monthLabel: string): MonthSummary {
-  const otEntries = entries.filter((entry) => entry.entry_type === "ot");
+  const otEntries = entries.filter((entry) => entry.entry_type === "ot" && entry.total_minutes > 0);
   const days = new Set(otEntries.map((entry) => entry.ot_date));
   const members = new Map<
     string,

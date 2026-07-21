@@ -94,6 +94,7 @@ create table if not exists public.overtime_entries (
   constraint overtime_day_type_valid check (day_type in ('regular', 'holiday')),
   constraint overtime_valid_time check (
     (entry_type = 'ot' and start_time is not null and end_time is not null and end_time > start_time)
+    or (entry_type = 'ot' and day_type = 'holiday' and start_time is null and end_time is null)
     or (entry_type = 'absent' and start_time is null and end_time is null)
   ),
   constraint overtime_rate_minutes_valid check (
@@ -104,6 +105,7 @@ create table if not exists public.overtime_entries (
   ),
   constraint overtime_positive_minutes check (
     (entry_type = 'ot' and total_minutes > 0)
+    or (entry_type = 'ot' and day_type = 'holiday' and start_time is null and end_time is null and total_minutes = 0)
     or (entry_type = 'absent' and total_minutes = 0)
   )
 );
@@ -180,6 +182,7 @@ alter table public.overtime_entries
 alter table public.overtime_entries
   add constraint overtime_valid_time check (
     (entry_type = 'ot' and start_time is not null and end_time is not null and end_time > start_time)
+    or (entry_type = 'ot' and day_type = 'holiday' and start_time is null and end_time is null)
     or (entry_type = 'absent' and start_time is null and end_time is null)
   );
 
@@ -194,6 +197,7 @@ alter table public.overtime_entries
 alter table public.overtime_entries
   add constraint overtime_positive_minutes check (
     (entry_type = 'ot' and total_minutes > 0)
+    or (entry_type = 'ot' and day_type = 'holiday' and start_time is null and end_time is null and total_minutes = 0)
     or (entry_type = 'absent' and total_minutes = 0)
   );
 
@@ -263,7 +267,14 @@ begin
     new.weighted_minutes := 0;
   else
     new.absence_type := null;
-    if new.day_type = 'holiday' then
+    if new.day_type = 'holiday' and new.start_time is null and new.end_time is null then
+      new.day_type := 'holiday';
+      new.total_minutes := 0;
+      new.ot_1x_minutes := 0;
+      new.ot_1_5x_minutes := 0;
+      new.ot_3x_minutes := 0;
+      new.weighted_minutes := 0;
+    elsif new.day_type = 'holiday' then
       new.day_type := 'holiday';
       new.ot_1x_minutes :=
         greatest(
@@ -292,8 +303,10 @@ begin
       new.ot_3x_minutes := 0;
     end if;
 
-    new.total_minutes := new.ot_1x_minutes + new.ot_1_5x_minutes + new.ot_3x_minutes;
-    new.weighted_minutes := new.ot_1x_minutes + (new.ot_1_5x_minutes * 1.5) + (new.ot_3x_minutes * 3);
+    if not (new.day_type = 'holiday' and new.start_time is null and new.end_time is null) then
+      new.total_minutes := new.ot_1x_minutes + new.ot_1_5x_minutes + new.ot_3x_minutes;
+      new.weighted_minutes := new.ot_1x_minutes + (new.ot_1_5x_minutes * 1.5) + (new.ot_3x_minutes * 3);
+    end if;
   end if;
 
   if tg_op = 'UPDATE' then
@@ -318,6 +331,16 @@ begin
       and (
         existing.entry_type = 'absent'
         or new.entry_type = 'absent'
+        or (
+          new.entry_type = 'ot'
+          and new.day_type = 'holiday'
+          and new.start_time is null
+          and new.end_time is null
+          and existing.entry_type = 'ot'
+          and existing.day_type = 'holiday'
+          and existing.start_time is null
+          and existing.end_time is null
+        )
         or (existing.start_time < new.end_time and existing.end_time > new.start_time)
       )
   ) then

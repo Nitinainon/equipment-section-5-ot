@@ -160,7 +160,7 @@ const quickOtOptions = [
 ];
 
 const absenceOptions: Array<{ type: OvertimeAbsenceType; label: string }> = [
-  { type: "sixth_day_off", label: "หยุดวันที่ 6" },
+  { type: "sixth_day_off", label: "ไม่มาทำงาน" },
   { type: "personal_leave", label: "ลากิจ" },
   { type: "sick_leave", label: "ลาป่วย" },
   { type: "vacation_leave", label: "ลาพักร้อน" },
@@ -544,8 +544,8 @@ export function OtCalendarApp() {
       entryType: entry.entry_type,
       absenceType: entry.absence_type ?? "sixth_day_off",
       dayType: entry.day_type,
-      startTime: entry.start_time ?? "17:00",
-      endTime: entry.end_time ?? "20:00",
+      startTime: entry.start_time ?? "",
+      endTime: entry.end_time ?? "",
     });
   }
 
@@ -983,6 +983,7 @@ export function OtCalendarApp() {
           <div className="calendar-grid">
             {calendarDays.map((day) => {
               const dayEntries = entriesByDate.get(day.iso) ?? [];
+              const countedEntries = dayEntries.filter((entry) => !isHolidayCreditEntry(entry));
               const dayHolidays = holidaysForDate(filteredHolidays, day.iso);
               const visibleEntries = dayEntries;
               const visibleHolidays = dayHolidays;
@@ -1005,9 +1006,9 @@ export function OtCalendarApp() {
                 >
                   <span className="day-number">{day.day}</span>
                   <span className="day-counts">
-                    {dayEntries.length > 0 ? (
+                    {countedEntries.length > 0 ? (
                       <span>
-                        <i /> {dayEntries.length} รายการ
+                        <i /> {countedEntries.length} รายการ
                       </span>
                     ) : null}
                     {dayHolidays.length > 0 ? (
@@ -1019,6 +1020,7 @@ export function OtCalendarApp() {
                   <span className="day-items">
                     {visibleEntries.map((entry) => {
                       const isAbsent = entry.entry_type === "absent";
+                      const isHolidayCredit = isHolidayCreditEntry(entry);
 
                       return (
                         <span
@@ -1035,7 +1037,9 @@ export function OtCalendarApp() {
                         >
                           {isAbsent
                             ? `${absenceTypeLabel(entry.absence_type)}: ${memberCalendarName(entry.member)}`
-                            : memberCalendarName(entry.member)}
+                            : isHolidayCredit
+                              ? `เก็บ: ${memberCalendarName(entry.member)}`
+                              : memberCalendarName(entry.member)}
                         </span>
                       );
                     })}
@@ -1238,7 +1242,7 @@ function DayDetailCard({
   onEdit: (entry: OvertimeEntry) => void;
   onDelete: (entry: OvertimeEntry) => void;
 }) {
-  const otEntries = entries.filter((entry) => entry.entry_type === "ot");
+  const otEntries = entries.filter((entry) => entry.entry_type === "ot" && !isHolidayCreditEntry(entry));
   const absentEntries = entries.filter((entry) => entry.entry_type === "absent");
   const memberCount = new Set(otEntries.map((entry) => entry.member_id)).size;
 
@@ -1277,7 +1281,9 @@ function DayDetailCard({
                   {memberSecondaryLabel(entry.member, showEmployeeCode) ? " - " : ""}
                   {entry.entry_type === "absent"
                     ? absenceTypeLabel(entry.absence_type)
-                    : `${entry.start_time}-${entry.end_time} (${formatEntryRateBreakdown(entry)})`}
+                    : isHolidayCreditEntry(entry)
+                      ? formatEntryRateBreakdown(entry)
+                      : `${entry.start_time}-${entry.end_time} (${formatEntryRateBreakdown(entry)})`}
                 </span>
               </div>
               <button className="row-icon edit" type="button" onClick={() => onEdit(entry)} aria-label="แก้ไข">
@@ -1323,7 +1329,7 @@ function ExportDayDetailCard({
   entries: OvertimeEntry[];
   holidays: WeeklyHoliday[];
 }) {
-  const otEntries = entries.filter((entry) => entry.entry_type === "ot");
+  const otEntries = entries.filter((entry) => entry.entry_type === "ot" && !isHolidayCreditEntry(entry));
   const totalMinutes = otEntries.reduce((total, entry) => total + entry.total_minutes, 0);
 
   return (
@@ -1374,11 +1380,13 @@ function ExportDayDetailCard({
                 <td>{entry.member.name}</td>
                 <td>{entry.member.nickname?.trim() || "-"}</td>
                 <td>{entry.member.chinese_name?.trim() || "-"}</td>
-                <td>{entry.entry_type === "absent" ? absenceTypeLabel(entry.absence_type) : "OT"}</td>
+                <td>{entry.entry_type === "absent" ? absenceTypeLabel(entry.absence_type) : isHolidayCreditEntry(entry) ? "เก็บวันหยุด" : "OT"}</td>
                 <td>
                   {entry.entry_type === "absent"
                     ? "-"
-                    : `${entry.start_time ?? "-"}-${entry.end_time ?? "-"}`}
+                    : isHolidayCreditEntry(entry)
+                      ? "-"
+                      : `${entry.start_time ?? "-"}-${entry.end_time ?? "-"}`}
                 </td>
                 <td>{entry.entry_type === "absent" ? "-" : formatEntryRateBreakdown(entry)}</td>
               </tr>
@@ -1421,6 +1429,7 @@ function OtForm({
   onSave: () => void;
 }) {
   const isHoliday = form.dayType === "holiday";
+  const isHolidayCredit = form.entryType === "ot" && isHoliday && !form.startTime && !form.endTime;
   const ratePreviewLabel = isHoliday ? "เรท OT วันหยุด" : "เรท OT วันปกติ";
   const ratePreview =
     form.entryType === "ot" && form.startTime && form.endTime && timeToMinutes(form.endTime) > timeToMinutes(form.startTime)
@@ -1500,9 +1509,9 @@ function OtForm({
                 );
               })}
               <button
-                className={`quick-ot-button${form.dayType === "holiday" && !activeQuickOption ? " active" : ""}`}
+                className={`quick-ot-button${isHolidayCredit ? " active" : ""}`}
                 type="button"
-                onClick={() => onChange({ ...form, dayType: "holiday" })}
+                onClick={() => onChange({ ...form, dayType: "holiday", startTime: "", endTime: "" })}
               >
                 6. เลือกเก็บวันหยุด
               </button>
@@ -1529,7 +1538,12 @@ function OtForm({
               />
             </label>
           </div>
-          {ratePreview ? (
+          {isHolidayCredit ? (
+            <div className="rate-preview">
+              <strong>เก็บวันหยุดเพิ่ม</strong>
+              <span>เพิ่มวันหยุด 1 วัน / ไม่เพิ่มชั่วโมง OT</span>
+            </div>
+          ) : ratePreview ? (
             <div className="rate-preview">
               <strong>{ratePreviewLabel}</strong>
               <span>{formatRateBreakdown(ratePreview)}</span>
@@ -2153,7 +2167,7 @@ function LeaveInfoPanel({
                 </td>
                 <td data-label="วันหยุดเพิ่ม">
                   <strong>{formatLeaveDays(row.addedHolidayDays)}</strong>
-                  {row.holidayOtMinutes ? <small>จาก OT1 {formatHours(row.holidayOtMinutes)}</small> : null}
+                  {row.addedHolidayDays ? <small>จากการเลือกเก็บวันหยุด</small> : null}
                   {row.sixthDayOffUsed ? <small>ใช้แล้ว {formatLeaveDays(row.sixthDayOffUsed)}</small> : null}
                 </td>
                 <td data-label="ลาป่วยที่เหลือ">
@@ -2217,7 +2231,8 @@ function ConfirmSaveModal({
           </p>
         ) : (
           <p>
-            <strong>เวลา:</strong> {payload.startTime}-{payload.endTime}
+            <strong>{isHolidayCreditPayload(payload) ? "สถานะ" : "เวลา"}:</strong>{" "}
+            {isHolidayCreditPayload(payload) ? "เก็บวันหยุดเพิ่ม 1 วัน" : `${payload.startTime}-${payload.endTime}`}
           </p>
         )}
       </div>
@@ -2271,7 +2286,8 @@ function ConfirmDeleteModal({
           </p>
         ) : (
           <p>
-            <strong>เวลา:</strong> {entry.start_time}-{entry.end_time}
+            <strong>{isHolidayCreditEntry(entry) ? "สถานะ" : "เวลา"}:</strong>{" "}
+            {isHolidayCreditEntry(entry) ? "เก็บวันหยุดเพิ่ม 1 วัน" : `${entry.start_time}-${entry.end_time}`}
           </p>
         )}
       </div>
@@ -2373,6 +2389,15 @@ function validateClientForm(form: FormState): OvertimePayload {
     };
   }
 
+  if (form.dayType === "holiday" && !form.startTime && !form.endTime) {
+    return {
+      memberId: form.memberId,
+      otDate: form.otDate,
+      entryType: "ot",
+      dayType: "holiday",
+    };
+  }
+
   if (!form.startTime) throw new Error("กรุณากรอกเวลาเริ่มต้น");
   if (!form.endTime) throw new Error("กรุณากรอกเวลาสิ้นสุด");
 
@@ -2396,7 +2421,7 @@ function validateClientForm(form: FormState): OvertimePayload {
 
 function buildChatExportText(dateIso: string, entries: OvertimeEntry[]) {
   const lines = entries
-    .filter((entry) => entry.entry_type === "ot")
+    .filter((entry) => entry.entry_type === "ot" && !isHolidayCreditEntry(entry))
     .map((entry) =>
       [
         entry.member.employee_code?.trim() || "-",
@@ -2734,12 +2759,33 @@ function formatRateBreakdown(breakdown: {
 }
 
 function formatEntryRateBreakdown(entry: OvertimeEntry) {
+  if (isHolidayCreditEntry(entry)) return "เก็บวันหยุดเพิ่ม 1 วัน";
+
   return formatRateBreakdown({
     totalMinutes: entry.total_minutes,
     ot1xMinutes: entry.ot_1x_minutes,
     ot15xMinutes: entry.ot_1_5x_minutes,
     ot3xMinutes: entry.ot_3x_minutes,
   });
+}
+
+function isHolidayCreditEntry(entry: OvertimeEntry) {
+  return (
+    entry.entry_type === "ot" &&
+    entry.day_type === "holiday" &&
+    !entry.start_time &&
+    !entry.end_time &&
+    entry.total_minutes === 0
+  );
+}
+
+function isHolidayCreditPayload(payload: OvertimePayload) {
+  return (
+    payload.entryType === "ot" &&
+    payload.dayType === "holiday" &&
+    !payload.startTime &&
+    !payload.endTime
+  );
 }
 
 function getBangkokTodayIso() {
@@ -2752,7 +2798,7 @@ function getBangkokTodayIso() {
 }
 
 function buildClientSummary(entries: OvertimeEntry[], month: string): MonthSummary {
-  const otEntries = entries.filter((entry) => entry.entry_type === "ot");
+  const otEntries = entries.filter((entry) => entry.entry_type === "ot" && !isHolidayCreditEntry(entry));
   const days = new Set(otEntries.map((entry) => entry.ot_date));
   const members = new Map<
     string,
@@ -2806,17 +2852,17 @@ function buildClientSummary(entries: OvertimeEntry[], month: string): MonthSumma
 }
 
 function buildLeaveInfoRows(members: Member[], entries: OvertimeEntry[]): LeaveInfoRow[] {
-  const holidayMinutesByMember = new Map<string, number>();
+  const holidayCreditsByMember = new Map<string, number>();
   const absenceDaysByMember = new Map<
     string,
     Record<OvertimeAbsenceType, number>
   >();
 
   for (const entry of entries) {
-    if (entry.entry_type === "ot" && entry.day_type === "holiday") {
-      holidayMinutesByMember.set(
+    if (isHolidayCreditEntry(entry)) {
+      holidayCreditsByMember.set(
         entry.member_id,
-        (holidayMinutesByMember.get(entry.member_id) ?? 0) + entry.ot_1x_minutes,
+        (holidayCreditsByMember.get(entry.member_id) ?? 0) + 1,
       );
       continue;
     }
@@ -2830,15 +2876,13 @@ function buildLeaveInfoRows(members: Member[], entries: OvertimeEntry[]): LeaveI
   }
 
   return members.map((member) => {
-    const holidayOtMinutes = holidayMinutesByMember.get(member.id) ?? 0;
+    const holidayCreditDays = holidayCreditsByMember.get(member.id) ?? 0;
     const absenceDays = absenceDaysByMember.get(member.id) ?? emptyAbsenceDayCounts();
-    const earnedHolidayDays = holidayOtMinutes / 480;
-    const addedHolidayDays = Math.max(0, earnedHolidayDays - absenceDays.sixth_day_off);
 
     return {
       member,
-      holidayOtMinutes,
-      addedHolidayDays,
+      holidayOtMinutes: 0,
+      addedHolidayDays: holidayCreditDays,
       sixthDayOffUsed: absenceDays.sixth_day_off,
       sickLeaveUsed: absenceDays.sick_leave,
       personalLeaveUsed: absenceDays.personal_leave,
@@ -2880,7 +2924,7 @@ function memberSecondaryLabel(member: Member, showEmployeeCode = false) {
 }
 
 function absenceTypeLabel(type?: OvertimeAbsenceType | null) {
-  return absenceOptions.find((option) => option.type === (type ?? "sixth_day_off"))?.label ?? "หยุดวันที่ 6";
+  return absenceOptions.find((option) => option.type === (type ?? "sixth_day_off"))?.label ?? "ไม่มาทำงาน";
 }
 
 function memberFullLabel(member: Member, showEmployeeCode = false) {
