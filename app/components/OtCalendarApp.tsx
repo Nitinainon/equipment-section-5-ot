@@ -2209,7 +2209,6 @@ function BottomNav({
     { tab: "register", label: "ลงทะเบียน", icon: <Plus size={22} /> },
     { tab: "report", label: "รายงาน", icon: <BarChart3 size={22} /> },
     { tab: "members", label: "สมาชิก", icon: <Users size={22} /> },
-    { tab: "settings", label: "ตั้งค่า", icon: <Settings size={22} /> },
   ];
 
   return (
