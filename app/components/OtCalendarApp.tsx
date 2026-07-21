@@ -429,6 +429,14 @@ export function OtCalendarApp() {
     setActiveTab("calendar");
   }
 
+  function goToHome() {
+    setActiveTab("calendar");
+    setFormMode(null);
+    setPendingSave(null);
+    setPendingDelete(null);
+    setError("");
+  }
+
   async function saveCalendarImage() {
     if (!calendarExportRef.current) return;
     setExporting("calendar");
@@ -758,26 +766,28 @@ export function OtCalendarApp() {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <div className="brand-mark">
-          <CalendarCheck size={28} aria-hidden />
-        </div>
-        <div className="brand-copy">
-          <h1>Equipment Section 5 - OT</h1>
-          <p>ระบบวางแผนและลงทะเบียนการทำงานล่วงเวลา</p>
-        </div>
-        <div className="hero-graphic" aria-hidden="true">
-          <div className="graphic-card graphic-calendar">
-            <span>OT</span>
-            <strong>17:00</strong>
-            <i />
-          </div>
-          <div className="graphic-card graphic-chart">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="graphic-badge">+3 ชม.</div>
-        </div>
+        <button className="banner-home" type="button" onClick={goToHome} aria-label="กลับไปหน้าหลัก">
+          <span className="brand-mark">
+            <CalendarCheck size={28} aria-hidden />
+          </span>
+          <span className="brand-copy">
+            <span className="brand-title">Equipment Section 5 - OT</span>
+            <span>ระบบวางแผนและลงทะเบียนการทำงานล่วงเวลา</span>
+          </span>
+          <span className="hero-graphic" aria-hidden="true">
+            <span className="graphic-card graphic-calendar">
+              <span>OT</span>
+              <strong>17:00</strong>
+              <i />
+            </span>
+            <span className="graphic-card graphic-chart">
+              <span />
+              <span />
+              <span />
+            </span>
+            <span className="graphic-badge">+3 ชม.</span>
+          </span>
+        </button>
         <button
           className="top-icon"
           type="button"
@@ -1077,11 +1087,6 @@ export function OtCalendarApp() {
           holidays={selectedDateHolidays}
         />
       </div>
-
-      <button className="floating-add" type="button" onClick={() => openCreateForm()}>
-        <Plus size={22} aria-hidden />
-        ลง OT
-      </button>
 
       <BottomNav activeTab={activeTab} onChange={setActiveTab} />
 

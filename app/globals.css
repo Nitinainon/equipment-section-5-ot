@@ -59,7 +59,7 @@ button {
 .topbar {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(190px, 260px) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 16px;
   margin-bottom: 18px;
@@ -71,6 +71,32 @@ button {
   padding: 18px;
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+.banner-home {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) minmax(190px, 260px);
+  align-items: center;
+  gap: 18px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.banner-home:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.34);
+  outline-offset: 6px;
+  border-radius: 18px;
+}
+
+.banner-home:hover .brand-title {
+  color: #1d4ed8;
 }
 
 .topbar::before {
@@ -103,9 +129,12 @@ button {
 .brand-copy {
   position: relative;
   z-index: 1;
+  display: grid;
+  gap: 4px;
   min-width: 0;
 }
 
+.brand-title,
 .brand-copy h1 {
   margin: 0;
   overflow-wrap: anywhere;
@@ -115,8 +144,9 @@ button {
   letter-spacing: 0;
 }
 
+.brand-copy > span:last-child,
 .brand-copy p {
-  margin: 4px 0 0;
+  margin: 0;
   color: var(--muted);
   font-size: clamp(14px, 3.3vw, 18px);
   font-weight: 600;
@@ -258,8 +288,7 @@ button {
 }
 
 .today-action,
-.btn-primary,
-.floating-add {
+.btn-primary {
   border: 1px solid rgba(37, 99, 235, 0.2);
   border-radius: 14px;
   background: linear-gradient(180deg, #3b82f6, #2563eb);
@@ -1729,19 +1758,6 @@ button {
   margin: 12px 0 0;
 }
 
-.floating-add {
-  position: fixed;
-  right: max(16px, calc((100vw - 1180px) / 2 + 16px));
-  bottom: 88px;
-  z-index: 35;
-  display: none;
-  min-height: 52px;
-  align-items: center;
-  gap: 10px;
-  padding: 0 22px;
-  font-size: 18px;
-}
-
 .bottom-nav {
   position: fixed;
   right: 0;
@@ -1794,10 +1810,6 @@ button {
 }
 
 @media (min-width: 900px) {
-  .floating-add {
-    display: inline-flex;
-  }
-
   .bottom-nav {
     right: max(16px, calc((100vw - 1180px) / 2 + 16px));
     bottom: 18px;
@@ -1810,7 +1822,7 @@ button {
 }
 
 @media (max-width: 820px) {
-  .topbar {
+  .banner-home {
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
@@ -1849,10 +1861,12 @@ button {
     border-radius: 16px;
   }
 
+  .brand-title,
   .brand-copy h1 {
     font-size: clamp(24px, 8vw, 34px);
   }
 
+  .brand-copy > span:last-child,
   .brand-copy p {
     font-size: 14px;
   }
@@ -2053,7 +2067,4 @@ button {
     width: 100%;
   }
 
-  .floating-add {
-    display: none;
-  }
 }
